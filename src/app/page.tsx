@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect } from "react";
@@ -10,16 +11,19 @@ import {
   Sound,
   Math as PhaserMath,
   AUTO,
+  Input,
+  Tweens,
+  Time,
 } from "phaser";
 
 // Définition des types pour les variables globales
 interface GameScene extends Scene {
   physics: Physics.Arcade.ArcadePhysics;
   add: GameObjects.GameObjectFactory;
-  input: Types.Input.InputPlugin;
+  input: Input.InputPlugin;
   sound: Sound.BaseSoundManager;
-  time: Types.Time.Clock;
-  tweens: Types.Tweens.TweenManager;
+  time: Time.Clock;
+  tweens: Tweens.TweenManager;
 }
 
 export default function GamePage() {
@@ -59,7 +63,7 @@ export default function GamePage() {
     let invincibilityMusic: Sound.BaseSound;
     let gameOverMusic: Sound.BaseSound;
 
-    let speed = 300;
+    const speed = 300;
     let score = 0;
     let lives = 3;
     let level = 1;
@@ -94,7 +98,7 @@ export default function GamePage() {
 
       // Création du joueur
       player = this.physics.add
-        .sprite(config.width / 2, config.height / 2, "player")
+        .sprite((config.width as any) / 2, (config.height as any) / 2, "player")
         .setScale(0.2);
       player.setCollideWorldBounds(true);
 
@@ -127,24 +131,30 @@ export default function GamePage() {
         projectiles,
         obstacles,
         destroyObstacle,
-        null,
+        undefined,
         this
       );
-      this.physics.add.collider(player, obstacles, hitObstacle, null, this);
-      this.physics.add.overlap(player, sodas, collectSoda, null, this);
+      this.physics.add.collider(
+        player,
+        obstacles,
+        hitObstacle,
+        undefined,
+        this
+      );
+      this.physics.add.overlap(player, sodas, collectSoda, undefined, this);
 
       // Textes
       scoreText = this.add.text(10, 10, "Score: 0", {
         fontSize: "20px",
-        fill: "#fff",
+        color: "#fff",
       });
       livesText = this.add.text(10, 40, "Lives: 3", {
         fontSize: "20px",
-        fill: "#fff",
+        color: "#fff",
       });
       levelText = this.add.text(10, 70, "Level: 1", {
         fontSize: "20px",
-        fill: "#fff",
+        color: "#fff",
       });
 
       // Contrôles
@@ -160,12 +170,16 @@ export default function GamePage() {
 
       // Sprite de Game Over
       flashPlayer = this.add
-        .sprite(-200, config.height / 2, "flash_player")
+        .sprite(-200, (config.height as any) / 2, "flash_player")
         .setScale(0.4);
       flashPlayer.setVisible(false);
 
       gameOverImage = this.add
-        .sprite(config.width / 2, config.height / 2, "game_over_image")
+        .sprite(
+          (config.width as any) / 2,
+          (config.height as any) / 2,
+          "game_over_image"
+        )
         .setScale(0);
       gameOverImage.setVisible(false);
     }
@@ -195,11 +209,11 @@ export default function GamePage() {
       });
 
       obstacles.children.iterate((obstacle: any) => {
-        if (obstacle && obstacle.y > config.height) obstacle.destroy();
+        if (obstacle && obstacle.y > (config.height as any)) obstacle.destroy();
       });
 
       sodas.children.iterate((soda: any) => {
-        if (soda && soda.y > config.height) soda.destroy();
+        if (soda && soda.y > (config.height as any)) soda.destroy();
       });
 
       if (score >= level * 50) {
@@ -230,13 +244,13 @@ export default function GamePage() {
     }
 
     function spawnObstacle(this: GameScene) {
-      const x = PhaserMath.Between(50, config.width - 50);
+      const x = PhaserMath.Between(50, (config.width as any) - 50);
       const obstacle = obstacles.create(x, 0, "obstacle").setScale(0.4);
       obstacle.setVelocityY(200 + level * 20);
     }
 
     function spawnSoda(this: GameScene) {
-      const x = PhaserMath.Between(50, config.width - 50);
+      const x = PhaserMath.Between(50, (config.width as any) - 50);
       const soda = sodas.create(x, 0, "soda");
       soda.setScale(0.3);
       soda.setVelocityY(100);
@@ -300,7 +314,7 @@ export default function GamePage() {
       flashPlayer.setVisible(true);
       this.tweens.add({
         targets: flashPlayer,
-        x: config.width + 200,
+        x: (config.width as any) + 200,
         scale: 1.2,
         duration: gameOverMusic.duration * 1000,
         onComplete: () => {
