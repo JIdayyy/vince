@@ -62,6 +62,7 @@ export default function GamePage() {
     let backgroundMusic: Sound.BaseSound;
     let invincibilityMusic: Sound.BaseSound;
     let gameOverMusic: Sound.BaseSound;
+    let matraks: Physics.Arcade.Group;
 
     const speed = 300;
     let score = 0;
@@ -72,6 +73,7 @@ export default function GamePage() {
 
     function preload(this: GameScene) {
       this.load.image("player", "/images/player.png");
+      this.load.image("matrak", "/images/matrak.png");
       this.load.image("evolved_player", "/images/evolved_player.png");
       this.load.image("obstacle", "/images/obstacle.png");
       this.load.image("projectile", "/images/projectile.png");
@@ -106,6 +108,7 @@ export default function GamePage() {
       projectiles = this.physics.add.group();
       obstacles = this.physics.add.group();
       sodas = this.physics.add.group();
+      matraks = this.physics.add.group();
 
       // Particules pour l'aura des projectiles
       particles = this.add.particles("particle");
@@ -142,6 +145,14 @@ export default function GamePage() {
         this
       );
       this.physics.add.overlap(player, sodas, collectSoda, undefined, this);
+      this.physics.add.collider(
+        projectiles,
+        matraks,
+        destroyObstacle,
+        undefined,
+        this
+      );
+      this.physics.add.collider(player, matraks, hitObstacle, undefined, this);
 
       // Textes
       scoreText = this.add.text(10, 10, "Score: 0", {
@@ -216,6 +227,10 @@ export default function GamePage() {
         if (soda && soda.y > (config.height as any)) soda.destroy();
       });
 
+      matraks.children.iterate((matrak: any) => {
+        if (matrak && matrak.y > (config.height as any)) matrak.destroy();
+      });
+
       if (score >= level * 50) {
         level++;
         levelText.setText("Level: " + level);
@@ -226,6 +241,16 @@ export default function GamePage() {
       const projectile = projectiles.create(player.x, player.y, "projectile");
       projectile.setScale(0.1);
       projectile.setVelocityY(-400);
+
+      // Ajout de l'animation de rotation du joueur
+      this.tweens.add({
+        targets: player,
+        angle: 360,
+        duration: 500,
+        onComplete: () => {
+          player.setAngle(0);
+        },
+      });
 
       const emitter = particles.createEmitter({
         x: projectile.x,
@@ -245,8 +270,15 @@ export default function GamePage() {
 
     function spawnObstacle(this: GameScene) {
       const x = PhaserMath.Between(50, (config.width as any) - 50);
-      const obstacle = obstacles.create(x, 0, "obstacle").setScale(0.4);
-      obstacle.setVelocityY(200 + level * 20);
+      const isMatrak = Math.random() < 0.3; // 30% de chance d'être un matrak
+
+      if (isMatrak) {
+        const matrak = matraks.create(x, 0, "matrak").setScale(0.4);
+        matrak.setVelocityY(300 + level * 25); // Plus rapide que l'obstacle normal
+      } else {
+        const obstacle = obstacles.create(x, 0, "obstacle").setScale(0.4);
+        obstacle.setVelocityY(200 + level * 20);
+      }
     }
 
     function spawnSoda(this: GameScene) {
