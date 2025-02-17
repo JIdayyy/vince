@@ -335,7 +335,7 @@ export default function GamePage() {
   }, []); // Le tableau de dépendances vide signifie que cela ne s'exécute qu'une fois au montage
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="w-screen overflow-hidden h-screen bg-black flex items-center justify-center">
       <div id="game-container"></div>
     </div>
   );
