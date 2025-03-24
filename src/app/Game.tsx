@@ -15,6 +15,7 @@ import {
   Tweens,
   Time,
 } from "phaser";
+import { createScore } from "./actions";
 
 // Définition des types pour les variables globales
 export interface GameScene extends Scene {
@@ -355,6 +356,9 @@ export default function GamePage() {
           });
         },
       });
+
+      // Sauvegarder le score avec la server action
+      createScore(score).catch(console.error);
     }
 
     // Création du jeu
