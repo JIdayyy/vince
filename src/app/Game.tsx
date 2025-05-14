@@ -64,6 +64,9 @@ export default function GamePage() {
     let invincibilityMusic: Sound.BaseSound;
     let gameOverMusic: Sound.BaseSound;
     let matraks: Physics.Arcade.Group;
+    let obstacleSpawnEvent: Time.TimerEvent;
+    let sodaSpawnEvent: Time.TimerEvent;
+    let tryAgainButton: GameObjects.Text;
 
     const speed = 300;
     let score = 0;
@@ -114,8 +117,38 @@ export default function GamePage() {
       // Particules pour l'aura des projectiles
       particles = this.add.particles("particle");
 
+      // Création du bouton Try Again (initialement invisible)
+      tryAgainButton = this.add
+        .text(
+          (config.width as any) / 2,
+          (config.height as any) / 2 + 200,
+          "Try Again",
+          {
+            fontSize: "32px",
+            color: "#ffffff",
+            backgroundColor: "#000000",
+            padding: { x: 20, y: 10 },
+          }
+        )
+        .setOrigin(0.5)
+        .setInteractive()
+        .setVisible(false)
+        .setDepth(1000);
+
+      tryAgainButton.on("pointerdown", () => {
+        this.scene.restart();
+      });
+
+      tryAgainButton.on("pointerover", () => {
+        tryAgainButton.setStyle({ backgroundColor: "#333333" });
+      });
+
+      tryAgainButton.on("pointerout", () => {
+        tryAgainButton.setStyle({ backgroundColor: "#000000" });
+      });
+
       // Génération des obstacles
-      this.time.addEvent({
+      obstacleSpawnEvent = this.time.addEvent({
         delay: 1000 - level * 50,
         callback: spawnObstacle,
         callbackScope: this,
@@ -123,7 +156,7 @@ export default function GamePage() {
       });
 
       // Génération des sodas
-      this.time.addEvent({
+      sodaSpawnEvent = this.time.addEvent({
         delay: 10000,
         callback: spawnSoda,
         callbackScope: this,
@@ -335,13 +368,27 @@ export default function GamePage() {
       invincibilityMusic.stop();
       gameOverMusic.play();
 
+      // Arrêt des événements de spawn
+      obstacleSpawnEvent.remove();
+      sodaSpawnEvent.remove();
+
+      // Suppression de tous les éléments du jeu
+      player.destroy();
       obstacles.clear(true, true);
+      projectiles.clear(true, true);
+      sodas.clear(true, true);
+      matraks.clear(true, true);
+      particles.emitters.each((emitter) => emitter.stop());
 
       gameOverImage.setVisible(true);
       this.tweens.add({
         targets: gameOverImage,
         scale: 1,
-        duration: gameOverMusic.duration * 1000,
+        duration: 1000,
+        onComplete: () => {
+          tryAgainButton.setVisible(true);
+          tryAgainButton.setDepth(1000); // S'assurer que le bouton est au-dessus de tout
+        },
       });
 
       flashPlayer.setVisible(true);
@@ -349,12 +396,7 @@ export default function GamePage() {
         targets: flashPlayer,
         x: (config.width as any) + 200,
         scale: 1.2,
-        duration: gameOverMusic.duration * 1000,
-        onComplete: () => {
-          this.time.delayedCall(6000, () => {
-            this.scene.restart();
-          });
-        },
+        duration: 1000,
       });
 
       // Sauvegarder le score avec la server action

@@ -36,7 +36,7 @@ export default function Page() {
           >
             JOUER
           </Link>
-          <Leaderboard />
+          {/* <Leaderboard /> */}
         </div>
       </Vortex>
     </div>
